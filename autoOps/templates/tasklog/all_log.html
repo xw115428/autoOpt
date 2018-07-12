@@ -1,0 +1,139 @@
+{% extends 'base_prem.html' %}
+
+{% block head-css %}
+{% endblock %}
+
+{% block content-panel %}
+
+<div class="row">
+    <table class="table table-hover table-bordered">
+        <thead>
+            <tr>
+                <th id="cc">任务id</th>
+                <th>任务类型</th>
+                <th>执行人姓名</th>
+                <th>执行内容</th>
+                <th>执行时间</th>
+                <th></th>
+            </tr>
+
+        </thead>
+        <tbody id="cc">
+            {% for i in posts %}
+             <tr>
+                <td task_id="{{ i.id }}">{{ i.id }}</td>
+                <td>{{ i.task_type }}</td>
+                <td>{{ i.exec_user.name }}</td>
+                <td>{{ i.exec_info }}</td>
+                <td>{{ i.exec_date }}</td>
+                <td><input class="btn btn-success" sel_type="True" type="submit" value="查看执行结果"></td>
+             </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+<nav aria-label="...">
+            <ul class="pagination">
+                {% if posts.has_previous %}
+                <li><a href="{% url 'all_log' %}?p={{ posts.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+                {% else %}
+                <li class="disabled"><a href="" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+                {% endif %}
+
+                {% for i in posts.paginator.pager_num_range %}
+                    {% if i == posts.number  %}
+                <li class="active"><a href="{% url 'all_log' %}?p={{ i }}">{{ i }} <span class="sr-only">(current)</span></a></li>
+                    {% else %}
+                <li><a href="{% url 'all_log' %}?p={{ i }}">{{ i }} <span class="sr-only">(current)</span></a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if posts.has_next %}
+                <li><a href="{% url 'all_log' %}?p={{ posts.next_page_number }}" aria-label="Previous"><span aria-hidden="true">下一页</span></a></li>
+                {% endif %}
+            </ul>
+        </nav>
+</div>
+
+{% endblock %}
+
+{% block bottom-js %}
+    <script type="text/javascript">
+        $(function () {
+            $("input[type='submit']").click(function () {
+                //获取任务ID号
+                var id=$(this).parent().parent().children(":first").html()
+                //点击后判断如果值等于True才会生成执行结果，并且设置sel_tyep的值为false，为下一次点击铺垫
+                if($(this).attr("sel_type")=="True"){
+                    $(this).attr("sel_type","False")
+                    $.ajax({
+                    type: 'POST',
+                    url: "{% url 'exec_result' %}",
+                    dataType:"json",
+                    data: {'id':id},
+                    success:function (callback) {
+                        $.each(callback,function (index,items) {
+                            var tr = document.createElement("tr")
+                            tr.className="tr_"+id
+                            tr.style="background-color: #9acfea"
+                            var td1 = document.createElement('td')
+                            td1.innerHTML = ""
+                            var td2 = document.createElement('td')
+                            td2.innerHTML = items.fields.exec_hostname
+                            var td3 = document.createElement('td')
+                            td3.innerHTML = ""
+                            var td4 = document.createElement('td')
+                            var pre=document.createElement('pre')
+                            td4.append(pre)
+                            pre.innerHTML = items.fields.exec_result
+                            var td5 = document.createElement('td')
+                            var result_date=items.fields.result_date.replace("T"," ")
+                            var result_date=date_format(result_date)
+                            td5.innerHTML=result_date
+                            tr.append(td1)
+                            tr.append(td2)
+                            tr.append(td3)
+                            tr.append(td4)
+                            tr.append(td5)
+                            $("[task_id="+id+"]").parent().after(tr)
+                        })
+                        var tr = document.createElement("tr")
+                        tr.className="tr_"+id
+                        tr.style="background-color: #9acfea"
+                        var th1 = document.createElement('th')
+                        th1.innerHTML = ""
+                        var th2 = document.createElement('th')
+                        th2.innerHTML = "主机名"
+                        var th3 = document.createElement('th')
+                        th3.innerHTML = ""
+                        var th4 = document.createElement('th')
+                        th4.innerHTML = "执行结果"
+                        var th5 = document.createElement('th')
+                        th5.innerHTML = "执行完成时间"
+                        tr.append(th1)
+                        tr.append(th2)
+                        tr.append(th3)
+                        tr.append(th4)
+                        tr.append(th5)
+                        $("[task_id="+id+"]").parent().after(tr)
+                    }
+                })
+                }else{
+                    $(".tr_"+id).remove()
+                    $(this).attr("sel_type","True")
+                }
+            })
+            function date_format(time) {
+                var data = new Date(time);
+                var year = data.getFullYear();  //获取年
+                var month = data.getMonth() + 1;    //获取月
+                var day = data.getDate(); //获取日
+                var hours = data.getHours()< 10 ? "0" + data.getHours() : data.getHours();
+                var minutes = data.getMinutes()< 10 ? "0" + data.getMinutes() : data.getMinutes();
+                time = year + "年" + month + "月" + day + "日" + " " + hours + ":" + minutes;
+                return time
+            }
+        })
+
+        </script>
+{% endblock %}

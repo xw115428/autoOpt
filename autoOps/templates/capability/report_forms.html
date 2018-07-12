@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+    <style>
+    li{
+        cursor:pointer
+    }
+</style>
+{% endblock %}
+
+{% block content-panel %}
+<div>
+    <label>开始时间</label>    <input id="start_time" type="date"/>
+    <label>结束时间</label>    <input id="stop_time" type="date"/>
+    <button type="button" class="btn btn-success">查询</button>
+</div>
+<div style="margin-top: 50px">
+    <select class="selectpicker" id="hosts" data-style="btn-success" data-live-search="true">....
+        <option value="" style="color: black">所有主机</option>
+        {% for i in result_hosts %}
+        <option  id="host" value={{ i.0 }}>{{ i.0 }}</option>
+        {% endfor %}
+    </select>
+    <select class="selectpicker" id="monitor" data-style="btn-success" data-live-search="true">....
+        <option value="">请选择监控项</option>
+        <option  id="cpu" value="system.cpu.util[,,avg5]">cpu使用率</option>
+        <option  id="mem" value="vm.memory.size[pused]">内存使用率</option>
+    </select>
+
+</div>
+</br>
+<div>
+    <table class="table table-hover table-bordered">
+        <thead>
+            <tr>
+                <th>主机名</th>
+                <th>时间</th>
+                <th>监控项</th>
+                <th>平均值</th>
+                <th>最大值</th>
+                <th>最小值</th>
+            </tr>
+        </thead>
+        <tbody id="cc">
+            {% for i in articles %}
+             <tr>
+                <td>{{ i.0 }}</td>
+                <td>{{ i.1 }}</td>
+                <td>{{ i.2 }}</td>
+                <td>{{ i.3 }}</td>
+                <td>{{ i.4 }}</td>
+                <td>{{ i.5 }}</td>
+             </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <nav aria-label="..." >
+        <ul class="pagination" id="page_froms">
+
+        </ul>
+    </nav>
+</div>
+{% endblock %}
+
+{% block bottom-js %}
+<script src="/static/js/bootstrap-select.min.js"></script>
+    <script>
+        $(function () {
+            //init()
+            $('#hosts').on('changed.bs.select',function(e){
+                var values=getValues()
+                sendAjax(values)
+            });//end selectpicker 选择主机触发的事件
+            $('#monitor').on('changed.bs.select',function(e){
+                var values=getValues()
+                sendAjax(values)
+            });//end selectpicker 选择监控项触发的事件
+            $(":button").click(function () {
+                var values=getValues()
+                console.log(values)
+                sendAjax(values)
+            })//end button click 点击查询按钮触发的事件
+            $(document).on("click",".click_page",function () {
+                var pageid=$(this).attr("pageid")
+                var values=getValues()
+                values.push(pageid)
+                sendAjax(values)
+            })//end click_page 点击分页按钮，进行处理
+            function init() {
+                var values=getValues()
+                sendAjax(values)
+            }//end init 打开页面ajax方式获取数据列表并且进行分页
+            function getValues() {
+                var values=new Array()
+                var host=$("#hosts").selectpicker('val');
+                var monitor=$("#monitor").selectpicker('val');
+                var start_time=$("#start_time").val();
+                var stop_time=$("#stop_time").val();
+                values.push(host)
+                values.push(monitor)
+                values.push(start_time)
+                values.push(stop_time)
+                return values
+            } //end getValues  获取所有选择框的值
+            function sendAjax(e) {
+                var op={"data":e}
+                $.ajax({
+                    type:"POST",
+                    url:'{% url "report_froms_post" %}',
+                    data:op,
+                    dataType:"json",
+                    success:function (callback) {
+                        createele(callback)
+                        createpage(callback)
+                        $("[pageid="+callback.p+"]").parent().addClass("active")
+                    }//end callback
+                })//endajax
+            }//end sendAjax ajax请求函数，上面所有的事件都调用这个函数
+            function createele(callback) {
+                $("#cc").children().remove()
+                $.each(callback.data,function (k,i) {
+                    tr = document.createElement("tr")
+                    td0 = document.createElement("td")
+                    td1 = document.createElement("td")
+                    td2 = document.createElement("td")
+                    td3 = document.createElement("td")
+                    td4 = document.createElement("td")
+                    td5 = document.createElement("td")
+                    td6 = document.createElement("td")
+                    td0.innerHTML=i[0]
+                    td1.innerHTML=i[1]
+                    td2.innerHTML=i[2]
+                    td3.innerHTML=i[3]
+                    td4.innerHTML=i[4]
+                    td5.innerHTML=i[5]
+                    tr.append(td0)
+                    tr.append(td1)
+                    tr.append(td2)
+                    tr.append(td3)
+                    tr.append(td4)
+                    tr.append(td5)
+                    $("#cc").append(tr)
+                })//end each
+            }//end createele  从返回的数据中生成对应的数据html
+            function createpage(callback) {
+                $("#page_froms").children().remove()
+                var p=callback.p
+                var page_list=callback.page_list
+                var page_count=callback.page_count
+                var last_page_li=document.createElement("li")
+                var next_page_li=document.createElement("li")
+                last_page_li.style.cursor = "pointer";
+                next_page_li.style.cursor = "pointer";
+
+                var last_page_span=document.createElement("span")
+                var next_page_span=document.createElement("span")
+                last_page_span.className="click_page"
+                next_page_span.className="click_page"
+                last_page_span.setAttribute("aria-hidden","true")
+                last_page_span.setAttribute("pageid",p-1)
+                next_page_span.setAttribute("aria-hidden","true")
+                next_page_span.setAttribute("pageid",p+1)
+                if(callback.data_count<=10){
+                    //create_page_list(page_list)
+                }
+                else if(p==1){
+                    create_page_list(page_list)
+                    next_page_span.innerHTML="下一页"
+                    next_page_li.append(next_page_span)
+                    $("#page_froms").append(last_page_li)
+                    $("#page_froms").append(next_page_li)
+                }// if p=首页
+                else if(p==page_count){
+                    last_page_span.innerHTML="上一页"
+                    last_page_li.append(last_page_span)
+                    $("#page_froms").append(last_page_li)
+                    create_page_list(page_list)
+                }//else if p=尾页
+                else{
+                    last_page_span.innerHTML="上一页"
+                    last_page_li.append(last_page_span)
+                    $("#page_froms").append(last_page_li)
+                    create_page_list(page_list)
+                    next_page_span.innerHTML="下一页"
+                    next_page_li.append(next_page_span)
+                    $("#page_froms").append(next_page_li)
+                }
+            }//end createpage 从返回的数据中生成分页html
+            function create_page_list(page_list) {
+                $(page_list).each(function (e,v) {
+                    var curr_page_li = document.createElement("li")
+                    var curr_page_span = document.createElement("span")
+                    curr_page_li.style.cursor = "pointer";
+                    curr_page_span.className = "click_page"
+                    curr_page_span.innerHTML = v
+                    curr_page_span.setAttribute("pageid", v)
+                    curr_page_li.append(curr_page_span)
+                    $("#page_froms").append(curr_page_li)
+                })
+            } //end  create_page_list 循环创建页码html
+        })//end function
+
+    </script>
+{% endblock %}

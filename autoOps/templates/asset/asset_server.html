@@ -1,0 +1,437 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+{% endblock %}
+
+{% block content-panel %}
+<div class="row">
+    <form class="form-inline" method="get" action="{% url 'asset_server' %}">
+        <div class="form-group">
+            <select  class="selectpicker"  data-live-search="true" name="business_unit" id="business_unit_search" title="请选择业务线">
+
+            </select>
+            <select  class="selectpicker"  data-live-search="true" name="hostname" id="hostname_search" title="请选择主机">
+
+            </select>
+            <input type="submit" class="btn btn-success" value="查询">
+        </div>
+    </form>
+    <HR>
+    <div class="col-md-12 col-xs-12 .col-sm-12">
+        <button type="button" id="add" class="btn btn-success" data-toggle="modal" data-target="#exampleModal">新增</button>
+        <table class="table table-hover table-bordered table-condensed">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>业务线</th>
+                    <th>子系统</th>
+                    <th>资产</th>
+                    <th>机柜列</th>
+                    <th>机柜号</th>
+                    <th>机柜中序号</th>
+                    <th>主机名</th>
+                    <th>主机组</th>
+                    <th>序列号</th>
+                    <th>厂商</th>
+                    <th>型号</th>
+                    <th>管理IP</th>
+                    <th>业务IP</th>
+                    <th>系统</th>
+                    <th>CPU总核数</th>
+                    <th>CPU数量</th>
+                    <th>CPU型号</th>
+                    <th>磁盘容量GB</th>
+                    <th>内存容量MB</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in posts %}
+                <tr>
+                    <td id="{{ i.id }}">{{ i.id }}</td>
+                    <td class="business_unit" id="{{ i.children_system.business_unit.id }}">{{ i.children_system.business_unit.name }}</td>
+                    <td class="children_system" id="{{ i.children_system.id }}">{{ i.children_system.name }}</td>
+                    <td class="asset" id="{{ i.asset.device_type_id }}">{{ i.asset.get_device_type_id_display }}</td>
+                    <td class="cabinet_colum" id="{{ i.asset.cabinet_num.cabinet_num.id }}">{{ i.asset.cabinet_num.cabinet_num.name }}</td>
+                    <td class="cabinet_num" id="{{ i.asset.cabinet_num.id }}">{{ i.asset.cabinet_num.name }}</td>
+                    <td>{{ i.asset.cabinet_order }}</td>
+                    <td >{{ i.hostname }}</td>
+                    <td class="hostgroup" id="{{ i.hostgroup.id }}">
+                        {% for hostgroup in i.hostgroup.values %}
+                            {{ hostgroup.name }}
+                            {% endfor %}
+
+
+                    </td>
+                    <td style="width: 20px">{{ i.sn }}</td>
+                    <td style="width: 20px">{{ i.manufacturer }}</td>
+                    <td style="width: 20px">{{ i.model }}</td>
+                    <td style="width: 25px">{{ i.manage_ip }}</td>
+                    <td style="width: 25px">{{ i.work_ip }}</td>
+                    <td >{{ i.os_platform }}</td>
+                    <td >{{ i.cpu_count }}</td>
+                    <td >{{ i.cpu_amount }}</td>
+                    <td >{{ i.cpu_model }}</td>
+                    <td >{{ i.disk_capacity }}</td>
+                    <td >{{ i.mem_capacity }}</td>
+                    <td>
+                        <button type="button" class="btn btn-success edit" data-toggle="modal" data-target="#exampleModal">编辑</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <nav aria-label="...">
+            <ul class="pagination">
+                {% if posts.has_previous %}
+                <li><a href="{% url 'asset_server' %}?p={{ posts.previous_page_number }}&hostname={{ hostname }}&business_unit={{ business_unit }}" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+                {% else %}
+                <li class="disabled"><a href="" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+                {% endif %}
+
+                {% for i in posts.paginator.pager_num_range %}
+                    {% if i == posts.number  %}
+                <li class="active"><a href="{% url 'asset_server' %}?p={{ i }}&hostname={{ hostname }}&business_unit={{ business_unit }}">{{ i }} <span class="sr-only">(current)</span></a></li>
+                    {% else %}
+                <li><a href="{% url 'asset_server' %}?p={{ i }}&hostname={{ hostname }}&business_unit={{ business_unit }}">{{ i }} <span class="sr-only">(current)</span></a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if posts.has_next %}
+                <li><a href="{% url 'asset_server' %}?p={{ posts.next_page_number }}&hostname={{ hostname }}&business_unit={{ business_unit }}" aria-label="Previous"><span aria-hidden="true">下一页</span></a></li>
+                    <li><a href="{% url 'asset_server' %}?p=all"><span aria-hidden="true">显示全部</span></a></li>
+                {% endif %}
+
+            </ul>
+        </nav>
+    </div>
+</div>
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">新增服务器设备信息</h4>
+            </div>
+            <div class="modal-body">
+                <form id="form">
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">业务线名:</label>
+                        <select class="server" style="width: 150px" id="asset__business_unit__name">
+
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">子系统名:</label>
+                        <select class="server" style="width: 150px"  id="server__children_system__name">
+
+                        </select>
+                    </div>
+                    <div class="form-group" >
+                        <label for="recipient-name" class="control-label">设备类型:</label>
+                        <select class=" server" style="width: 150px"  id="asset__device_type_id">
+
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">机柜排数:</label>
+                        <select class="server" style="width: 150px"  id="asset__cabinets_column">
+
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">机柜号码:</label>
+                        <select class=" server" style="width: 150px"   id="asset__cabinet_num">
+
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">机柜中的序号:</label>
+                        <input type="text" class="form-control server" id="asset__cabinet_order">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">购买时间:</label>
+                        <input type="date" class="form-control server" id="asset__buy_date">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">主机名:</label>
+                        <input type="text" class="form-control server" id="hostname">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">主机组名:</label>
+                        <select multiple="multiple" class="server" style="width: 150px"  id="hostgroup__name">
+
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">设备序列号:</label>
+                        <input type="text" class="form-control server" id="sn">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">制造商:</label>
+                        <input type="text" class="form-control server" id="manufacturer">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">型号:</label>
+                        <input type="text" class="form-control server" id="model">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">管理IP:</label>
+                        <input type="text" class="form-control server" id="manage_ip">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">业务IP:</label>
+                        <input type="text" class="form-control server" id="work_ip">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">系统:</label>
+                        <input type="text" class="form-control server" id="os_platform">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">系统版本:</label>
+                        <input type="text" class="form-control server" id="os_version">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">CPU总核数:</label>
+                        <input type="text" class="form-control server" id="cpu_count">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">CPU数量:</label>
+                        <input type="text" class="form-control server" id="cpu_amount">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">CPU型号:</label>
+                        <input type="text" class="form-control server" id="cpu_model">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">磁盘容量GB:</label>
+                        <input type="text" class="form-control server" id="disk_capacity">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">内存容量MB:</label>
+                        <input type="text" class="form-control server" id="mem_capacity">
+                    </div>
+                    <p class="col-lg-10 col-md-offset-1 bg-info remind hidden" id="err" >为空，请输入值</p>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success" id="save" server_id="">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block bottom-js %}
+    <script src="/static/js/bootstrap-select.min.js"></script>
+    <script>
+        $(function () {
+            data_search("asset_get_businessUnit","business_unit_search")
+            hostname_search("asset_get_hostname","hostname_search")
+            $('.selectpicker').selectpicker('refresh');
+            change_get_data("asset_get_chsystem","asset__business_unit__name","server__children_system__name","business_unit")
+            change_get_data("asset_get_cabinetsnum","asset__cabinets_column","asset__cabinet_num","cabinet_num")
+            $("#add").click(function () {
+                $("#save").attr("server_id","")
+                $("#server__children_system__name").empty()
+                $("#asset__cabinet_num").empty()
+                BusinessUnitOptList("asset_get_businessUnit","asset__business_unit__name")
+                BusinessUnitOptList("asset_get_hostgroup","hostgroup__name")
+                BusinessUnitOptList("asset_get_cabinetscolum","asset__cabinets_column")
+                getOptChoices("asset__device_type_id")
+                $("input").each(function () {
+                    $(this).val("")
+                })
+            })//end add
+            $(".edit").click(function () {
+                var id=$(this).parent().parent().children().first().attr("id")
+                var business_unit_id=$(this).parent().parent().children(".business_unit").attr("id")
+                var children_system_id=$(this).parent().parent().children(".children_system").attr("id")
+                var cabinet_colum_id=$(this).parent().parent().children(".cabinet_colum").attr("id")
+                var cabinet_num_id=$(this).parent().parent().children(".cabinet_num").attr("id")
+                var device_type_id=$(this).parent().parent().children(".asset").attr("id")
+                var hostgroup_id=$(this).parent().parent().children(".hostgroup").attr("id")
+
+                BusinessUnitOptList("asset_get_businessUnit","asset__business_unit__name",business_unit_id)
+                BusinessUnitOptList("asset_get_chsystem","server__children_system__name",children_system_id,business_unit_id)
+                BusinessUnitOptList("asset_get_cabinetscolum","asset__cabinets_column",cabinet_colum_id)
+                BusinessUnitOptList("asset_get_cabinetsnum","asset__cabinet_num",cabinet_num_id,cabinet_colum_id)
+                BusinessUnitOptList("asset_get_hostgroup","hostgroup__name",hostgroup_id)
+                getOptChoices("asset__device_type_id",device_type_id)
+                $("#save").attr("server_id",id)
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'asset_server_edit' %}",
+                    data:{"id":id},
+                    dataType:"json",
+                    success:function (callback){
+                        $.each(callback,function (i,item) {
+                            $("input#"+i+"").val(item)
+                        })
+                        //$("#form input").attr()
+                    }
+                })//end ajax
+            })//end edit
+            $("#save").click(function () {
+                var val_array={}
+                var id=$(this).attr("server_id")
+                console.log(id)
+                $("input.server").each(function (i) {
+                    k=$(this).attr("id")
+                    v=$(this).val()
+                    if(k=='asset__buy_date'){
+                        if(v.length==0){
+                            v="2017-11-01"
+                        }
+                    }
+                    if(v.length==0){
+                        val_array[k]=null
+                    }else{
+                        val_array[k]=v
+                    }
+
+                })//end each
+                $("select.server").each(function (i) {
+                    k=$(this).attr("id")
+                    v=$(this).val()
+                    val_array[k]=v
+                })//end each
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'asset_server_edit_save' %}",
+                    data:{"data":JSON.stringify(val_array),"id":id},
+                    dataType:"json",
+                    success:function (callback) {
+                        if(callback.status){
+                            window.location.reload()
+                        }
+                        else{
+                            alert(callback.mes)
+                        }
+                    }//end callback
+                })//end ajax
+
+            })//end save
+            function BusinessUnitOptList(url,id,business_unit_id="",last_id="") {
+                $("#"+id+"").empty()
+                $.ajax({
+                    type:"POST",
+                    url:"/asset/"+url+"/",
+                    data:{"data":last_id},
+                    dataType:"json",
+                    success:function (callback){
+                        $.each(callback,function (i,item) {
+                            var op=document.createElement("option")
+                            op.value=item.pk
+                            op.innerHTML=item.fields.name
+                            $("#"+id+"").append(op)
+                            $("#"+id+"").val(business_unit_id)
+                            {#$("#"+id+"").selectpicker('val',business_unit_id);#}
+                            {#$("#"+id+"").selectpicker('refresh');#}
+                        })
+                    }
+
+                })
+            }//end BusinessUnitOptList
+            function data_search(url,id) {
+                $("#"+id+"").empty()
+                $.ajax({
+                    type:"POST",
+                    url:"/asset/"+url+"/",
+                    dataType:"json",
+                    success:function (callback){
+                        $.each(callback,function (i,item) {
+                            var op=document.createElement("option")
+                            op.value=item.pk
+                            op.innerHTML=item.fields.name
+                            $("#"+id+"").append(op)
+                            $("#"+id+"").selectpicker('refresh');
+                        })
+                    }
+                })
+            }//end BusinessUnitOptList
+            function hostname_search(url,id) {
+                $("#"+id+"").empty()
+                $.ajax({
+                    type:"POST",
+                    url:"/asset/"+url+"/",
+                    dataType:"json",
+                    success:function (callback){
+                        $.each(callback,function (i,item) {
+                            var op=document.createElement("option")
+                            op.value=item.pk
+                            op.innerHTML=item.fields.hostname
+                            $("#"+id+"").append(op)
+                            $("#"+id+"").selectpicker('refresh');
+                        })
+                    }
+                })
+            }//end BusinessUnitOptList
+            function getOptChoices(id,device_type_id) {
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'asset_get_choices' %}",
+                    dataType:"json",
+                    success:function (callback){
+                        $("#"+id+"").empty()
+                        $.each(callback,function (i,item) {
+                            var op=document.createElement("option")
+                            op.value=item[0]
+                            op.innerHTML=item[1]
+                            $("#"+id+"").append(op)
+                            $("#"+id+"").val(device_type_id)
+                            {#$("#"+id+"").selectpicker('val',device_type_id);#}
+                            {#$("#"+id+"").selectpicker('refresh');#}
+                        })
+                    }
+                })//end ajax
+            }//end getOptChoices
+            function change_get_data(url,id,sid,key1,key2="name") {
+                //url=获取二级菜单内容的函数路径，id=一级菜单的div,sid=二级菜单的select id
+                $(document).on("change","#"+id+"",function(e){
+                    $("#"+sid+"").empty()
+                    {#var values=$(this).selectpicker('val');#}
+                    var values=$(this).val()
+                    $.ajax({
+                        type:"POST",
+                        url:"/asset/"+url+"/",
+                        data:{"data":values},
+                        dataType:"json",
+                        success:function (callback){
+                            if(callback.length==0){
+                                build_option_0(sid)
+                            }else{
+                                $.each(callback,function (i,item) {
+                                    build_option(id,sid,item,key1,"name")
+                                })
+                            }
+                        }
+                    })//end ajax
+
+                }) //end onchange
+            }//end change_get_data
+            function build_option(id,sid,item,key1,key2) {
+                //id=选择后的数据id,nid=二级联动的selectid,item=callback的值，key1=后台返回数据中的id,key2=后台返回数据中的内容
+                var val=item["pk"]
+                var htl=item["fields"][key2]
+                var op=document.createElement("option")
+                op.value=val
+                op.innerHTML=htl
+                $("#"+sid+"").append(op)
+                $("#"+sid+"").val(sid)
+                {#$("#"+sid+"").selectpicker('val',sid);#}
+                {#$("#"+sid+"").selectpicker('refresh');#}
+            }//end build_option
+            function build_option_0(sid) {
+                var op=document.createElement("option")
+                //op.value="False"
+                op.innerHTML="Null"
+                $("#"+sid+"").append(op)
+                $("#"+sid+"").val(sid)
+                {#$("#"+sid+"").selectpicker('val',sid);#}
+                {#$("#"+sid+"").selectpicker('refresh');#}
+            }
+        })//end all
+    </script>
+{% endblock %}

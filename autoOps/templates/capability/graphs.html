@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+{% endblock %}
+
+{% block content-panel %}
+<div class="row">
+    <div class="col-md-12 col-sm-12 col-xs-12">
+        <div class="row x_title">
+            <select class="selectpicker" data-style="btn-success" data-live-search="true">
+                <option value="0">请选择</option>
+                <option id="avg" value="0">平均值</option>
+                <option id="max" value="1">最大值</option>
+                <option id="min" value="2">最小值</option>
+            </select>
+            <label>开始时间</label>    <input type="date"/>
+            <label>结束时间</label>    <input type="date"/>
+            <button type="button" class="btn btn-success">查询</button>
+        </div>
+        <div class="dashboard_graph cc">
+            <div class="col-md-6 col-sm-3 col-xs-12 bg-white">
+                <div class="col-md-12 col-sm-12 col-xs-6"></div>
+            </div>
+            <div class="col-md-6 col-sm-3 col-xs-12 bg-white">
+                  <div class="col-md-12 col-sm-12 col-xs-6"></div>
+              </div>
+            <div class="clearfix"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block bottom-js %}
+    <script src="/static/js/highcharts.js"></script>
+    <script src="/static/js/bootstrap-select.min.js"></script>
+    <script>
+        $(function () {
+            //event()
+            var index=0
+            $('.selectpicker').on('changed.bs.select',function(e){
+                event()
+            });//选择值后显示对应的图形
+            $(":button").click(function () {
+                event()
+            })//显示对应时间的图形
+            function event() {
+                var start_time=$(":button").parent().children("input")[0].value
+                var stop_time=$(":button").parent().children("input")[1].value
+                var op=$('.selectpicker').selectpicker('val');
+                var id=$('.selectpicker').find("option:selected").attr('id')
+                if(id='undefined'){
+                    id='avg'
+                }
+
+                $('.cc div').remove()
+                initcpu("monitor_data",op,id,start_time,stop_time)
+            }//end event //获取对应的值
+            function initcpu(data,index=0,id="avg",start_time='',stop_time='') {
+                var url="{% url 'monitor_data' %}"
+                var op={"data":data,"index":index,"id":id,"start_time":start_time,"stop_time":stop_time}
+                $.ajax({
+                    type:"POST",
+                    url:url,
+                    data:op,
+                    dataType:"json",
+                    success:function (callback) {
+                        callback_data=callback.data
+                        for(i in callback_data){
+                            data=callback_data[i]
+                            id=data.id
+                            index=data.index
+                            div_1=document.createElement("div")
+                            div_1.className="col-md-6 col-sm-3 col-xs-12 bg-white"
+                            div_2=document.createElement("div")
+                            div_2.className="col-md-12 col-sm-12 col-xs-6"
+                            div_2.id=i+"_"+id+"_"+index
+                            div_1.append(div_2)
+                            $(".cc").append(div_1)
+                            myHighcharts(i,data,index,id)
+                        }//end for
+                        div_3=document.createElement("div")
+                        div_3.className="clearfix"
+                        $(".cc").append(div_3)
+
+                    }//end callback
+                }) //end ajax
+            }//end init //把获取的值通过ajax发送到后台，获取数据
+            function myHighcharts(name,callback,index,id) {
+                data=callback.data
+                var data_list=new Array()
+                //循环数据生成一个符合图形需求的字典
+                for(i in data){
+                    var data_value=new Array()
+                    for(j in data[i]){
+                        data_value.push(data[i][j][index])
+                        }
+                    data_list.push({'name':[i],'data':data_value})
+                    }
+                // 图表配置
+                var options_name = {
+                    chart: {
+                        type: 'line'                          //指定图表的类型，默认是折线图（line）
+                    },
+                    title: {
+                        text:callback.text        // 标题
+                    },
+                    xAxis: {
+                        categories: callback.date_list  // x 轴分类
+                    },
+                    yAxis: {
+                        title: {
+                            text: id                // y 轴标题
+                        }
+                    },
+                    plotOptions: {
+                        line: {
+                            connectNulls: true
+                        }
+                    },
+                    series: data_list
+                };
+                // 图表初始化函数
+                var chart = Highcharts.chart(name+"_"+id+"_"+index, options_name);
+            }//my_Highcharts //生成图像
+        })
+    </script>
+{% endblock %}

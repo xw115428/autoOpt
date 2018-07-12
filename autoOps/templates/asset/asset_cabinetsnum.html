@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+{% endblock %}
+
+{% block content-panel %}
+<div class="row">
+    <div class="col-md-8 col-xs-12 .col-sm-12">
+        <button type="button" id="add" class="btn btn-success" data-toggle="modal" data-target="#exampleModal">新增</button>
+        <table class="table table-hover table-bordered table-condensed">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>机柜列</th>
+                    <th>机柜号</th>
+                    <th style="width: 150px;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in posts %}
+                <tr>
+                    <td id="{{ i.id }}">{{ i.id }}</td>
+                    <td class="cabinetsnum" id="{{ i.cabinet_num.id }}">{{ i.cabinet_num.name }}</td>
+                    <td>{{ i.name }}</td>
+                    <td>
+                        <button type="button" class="btn btn-success edit" data-toggle="modal" data-target="#exampleModal">编辑</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <nav aria-label="...">
+            <ul class="pagination">
+                {% if posts.has_previous %}
+                <li><a href="{% url 'asset_cabinetsnum' %}?p={{ posts.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+                {% else %}
+                <li class="disabled"><a href="" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+                {% endif %}
+
+                {% for i in posts.paginator.pager_num_range %}
+                    {% if i == posts.number  %}
+                <li class="active"><a href="{% url 'asset_cabinetsnum' %}?p={{ i }}">{{ i }} <span class="sr-only">(current)</span></a></li>
+                    {% else %}
+                <li><a href="{% url 'asset_cabinetsnum' %}?p={{ i }}">{{ i }} <span class="sr-only">(current)</span></a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if posts.has_next %}
+                <li><a href="{% url 'asset_cabinetsnum' %}?p={{ posts.next_page_number }}" aria-label="Previous"><span aria-hidden="true">&raquo;</span></a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+
+</div>
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">新增机柜信息</h4>
+            </div>
+            <div class="modal-body">
+                 <form id="form">
+                     <div class="form-group">
+                         <label for="recipient-name" class="control-label">机柜列:</label>
+                         <select class="selectpicker server" data-style="btn-success" data-live-search="true" id="cabinets_num_cabinet_num">
+
+                         </select>
+                     </div>
+                     <div class="form-group" >
+                         <label for="recipient-name" class="control-label">机柜号:</label>
+                         <input type="text" class="form-control server" id="name">
+                     </div>
+                     <p class="col-lg-10 col-md-offset-1 bg-info remind hidden" id="err" >为空，请输入值</p>
+                 </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success" id="save" server_id="">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block bottom-js %}
+    <script src="/static/js/bootstrap-select.min.js"></script>
+    <script>
+        $(function () {
+            $("#add").click(function () {
+                CabinetsColumOptList("asset_get_cabinetscolum","cabinets_num_cabinet_num")
+                $("input").each(function () {
+                    $(this).val("")
+                })
+            })
+            $(".edit").click(function () {
+                var id=$(this).parent().parent().children().first().attr("id")
+                var business_unit_id=$(this).parent().parent().children(".cabinetsnum").attr("id")
+                CabinetsColumOptList("asset_get_cabinetscolum","cabinets_num_cabinet_num",business_unit_id)
+                $("#save").attr("server_id",id)
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'asset_cabinets_num_edit' %}",
+                    data:{"id":id},
+                    dataType:"json",
+                    success:function (callback){
+                        $.each(callback,function (i,item) {
+                            $("input#"+i+"").val(item)
+                        })
+                    }
+                })//end ajax
+            })//end edit
+            $("#save").click(function () {
+                var val_array={}
+                var id=$(this).attr("server_id")
+                $("input.server").each(function (i) {
+                    k=$(this).attr("id")
+                    v=$(this).val()
+                    if(v.length==0){
+                        val_array[k]=null
+                    }else{
+                        val_array[k]=v
+                    }
+
+                })//end each
+                $("select.server").each(function (i) {
+                    k=$(this).attr("id")
+                    v=$(this).selectpicker('val')
+                    val_array[k]=v
+                })//end each
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'asset_cabinets_num_save' %}",
+                    data:{"data":JSON.stringify(val_array),"id":id},
+                    dataType:"json",
+                    success:function (callback) {
+                        if(callback.status){
+                            window.location.reload()
+                        }
+                        else{
+                            alert(callback.mes)
+                        }
+                    }//end callback
+                })//end ajax
+            })//end save
+            function CabinetsColumOptList(url,id,business_unit_id="1") {
+                $.ajax({
+                    type:"POST",
+                    url:"/asset/"+url+"/",
+                    dataType:"json",
+                    success:function (callback){
+                        $("#"+id+"").empty()
+                        $.each(callback,function (i,item) {
+                            var op=document.createElement("option")
+                            op.value=item.pk
+                            op.innerHTML=item.fields.name
+                            $("#"+id+"").append(op)
+                            $("#"+id+"").selectpicker('val',business_unit_id);
+                            $("#"+id+"").selectpicker('refresh');
+                        })
+                    }
+
+                })
+            }
+
+        })//end all
+    </script>
+{% endblock %}

@@ -1,0 +1,21 @@
+<nav aria-label="...">
+  <ul class="pagination">
+{% if posts.has_previous %}
+    <li><a href="/asset/asset_childrensystem?p={{ posts.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+    {% else %}
+    <li class="disabled"><a href="#" aria-label="Previous"><span aria-hidden="true">上一页</span></a></li>
+{% endif %}
+{% for i in posts.paginator.pager_num_range %}
+    {% if i == posts.number  %}
+        <li class="active"><a href="/asset/asset_childrensystem?p={{ i }}">{{ i }} <span class="sr-only">(current)</span></a></li>
+    {% else %}
+        <li><a href="/asset/asset_childrensystem?p={{ i }}">{{ i }} <span class="sr-only">(current)</span></a></li>
+    {% endif %}
+{% endfor %}
+
+{% if posts.has_next %}
+    <li><a href="/asset/asset_childrensystem?p={{ posts.next_page_number }}" aria-label="Previous"><span aria-hidden="true">下一页</span></a></li>
+{% endif %}
+
+    </ul>
+</nav>

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+{% endblock %}
+
+{% block content-panel %}
+    <div class="col-lg-4 row">
+        <div class="panel panel-default panel-right">
+            <div class="panel-body">
+                <h4>版本选择</h4>
+                <hr/>
+                查看当前可选版本
+
+                <hr/>
+                <input id="file_upload" name="filename" type="file" multiple class="file-loading">
+                <div class="form-group">
+                    <label for="exampleInputName2">选择上传路径</label>
+                    <select id="select">
+                        {% for key,value in file_path_list.items %}
+                        <option value="{{ value.1 }}" id="{{ key }}">{{ value.0 }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="button" class="btn btn-success pull-right" id="exec_update">执行上传</button>
+                <div id="err-msgs"></div>
+                <div id="result-box">
+                </div>
+            </div>
+        </div>
+    </div>
+<div class="col-lg-8">
+
+</div>
+{% endblock %}
+
+{% block bottom-js %}
+    <script type="text/javascript">
+        $(function () {
+            $("#exec_update").click(function () {
+                console.log($("#select").val())
+            })
+
+        })
+    </script>
+{% endblock %}

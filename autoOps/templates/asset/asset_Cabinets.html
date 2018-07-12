@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+{% endblock %}
+
+{% block content-panel %}
+<div class="row">
+        <div>
+        <ul class="nav nav-tabs" role="tablist">
+            <li role="presentation" class="active"><a href="#one_Cabinets" aria-controls="one_Cabinets" role="tab" data-toggle="tab" id="1">第一排机柜</a></li>
+            <li role="presentation"><a href="#two_Cabinets" aria-controls="two_Cabinets" role="tab" data-toggle="tab" id="2">第二排机柜</a></li>
+            <li role="presentation"><a href="#three_Cabinets" aria-controls="three_Cabinets" role="tab" data-toggle="tab" id="3">第三排机柜</a></li>
+        </ul>
+    </div>
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="one_Cabinets">
+            {% for k,v in one_list.items %}
+            <div class="col-md-3 col-sm-3 col-xs-6">
+                <table border="3" style="height: 660px">
+                <h3>{{ k }}机柜</h3>
+                {% for c in v %}
+                    {% if c.device_type_id == 'server' %}
+                    <tr>
+                        <td><img style="width: 300px" src="/static/img/{{ c.device_type_id }}.gif" data-toggle="tooltip" data-placement="right" alt="{{ c }}" data-html="true" rel="tooltip" title="设备类型:{{ c.get_device_type_id_display }}<br>主机名:{{ c.server.hostname }}<br>管理IP:{{ c.server.manage_ip }}<br>业务IP:{{ c.server.work_ip }}<br>型号:{{ c.server.model }}<br>system:{{ c.server.os_platform }}-{{ c.server.os_version }}<br>业务线:{{ c.server.children_system.business_unit.name }}<br>子系统:{{ c.server.children_system.name }}"></img></td>
+                        <td>{{ c.cabinet_order }}</td>
+                    </tr>
+                    {% else %}
+                        <tr>
+                        <td><img style="width: 300px" src="/static/img/{{ c.device_type_id }}.png" data-toggle="tooltip" data-placement="right" alt="{{ c }}" data-html="true" rel="tooltip" title="设备类型:{{ c.get_device_type_id_display }}<br>管理IP:{{ c.networkdevice.management_ip }}<br>型号:{{ c.networkdevice.manufacture }}{{ c.networkdevice.model }}<br>业务线:{{ c.networkdevice.business_unit.name }}"></img></td>
+                        <td>{{ c.cabinet_order }}</td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+                </table>
+            </div>
+            {% endfor %}
+        </div>
+        <div role="tabpanel" class="tab-pane row" id="two_Cabinets">
+            {% for k,v in two_list.items %}
+            <div class="col-md-3 col-sm-3 col-xs-6">
+                <table border="3" style="height: 660px">
+                <h3>{{ k }}机柜</h3>
+                {% for c in v %}
+                    {% if c.device_type_id == 'server' %}
+                    <tr>
+                        <td><img style="width: 300px" src="/static/img/{{ c.device_type_id }}.gif" data-toggle="tooltip" data-placement="right" alt="{{ c }}" data-html="true" rel="tooltip" title="设备类型:{{ c.get_device_type_id_display }}<br>主机名:{{ c.server.hostname }}<br>管理IP:{{ c.server.manage_ip }}<br>业务IP:{{ c.server.work_ip }}<br>型号:{{ c.server.model }}<br>system:{{ c.server.os_platform }}-{{ c.server.os_version }}<br>业务线:{{ c.server.children_system.business_unit.name }}<br>子系统:{{ c.server.children_system.name }}"></img></td>
+                        <td>{{ c.cabinet_order }}</td>
+                    </tr>
+                    {% else %}
+                        <tr>
+                        <td><img style="width: 300px" src="/static/img/{{ c.device_type_id }}.png" data-toggle="tooltip" data-placement="right" alt="{{ c }}" data-html="true" rel="tooltip" title="设备类型:{{ c.get_device_type_id_display }}<br>管理IP:{{ c.networkdevice.management_ip }}<br>型号:{{ c.networkdevice.manufacture }}{{ c.networkdevice.model }}<br>业务线:{{ c.networkdevice.business_unit.name }}"></img></td>
+                        <td>{{ c.cabinet_order }}</td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+                </table>
+            </div>
+            {% endfor %}
+        </div>
+        <div role="tabpanel" class="tab-pane" id="three_Cabinets">
+            {% for k,v in three_list.items %}
+            <div class="col-md-3 col-sm-3 col-xs-6">
+                <table border="3" style="height: 660px">
+                <h3>{{ k }}机柜</h3>
+                {% for c in v %}
+                    {% if c.device_type_id == 'server' %}
+                    <tr>
+                        <td><img style="width: 300px" src="/static/img/{{ c.device_type_id }}.gif" data-toggle="tooltip" data-placement="right" alt="{{ c }}" data-html="true" rel="tooltip" title="设备类型:{{ c.get_device_type_id_display }}<br>主机名:{{ c.server.hostname }}<br>管理IP:{{ c.server.manage_ip }}<br>业务IP:{{ c.server.work_ip }}<br>型号:{{ c.server.model }}<br>system:{{ c.server.os_platform }}-{{ c.server.os_version }}<br>业务线:{{ c.server.children_system.business_unit.name }}<br>子系统:{{ c.server.children_system.name }}"></img></td>
+                        <td>{{ c.cabinet_order }}</td>
+                    </tr>
+                    {% else %}
+                        <tr>
+                        <td><img style="width: 300px" src="/static/img/{{ c.device_type_id }}.png" data-toggle="tooltip" data-placement="right" alt="{{ c }}" data-html="true" rel="tooltip" title="设备类型:{{ c.get_device_type_id_display }}<br>管理IP:{{ c.networkdevice.management_ip }}<br>型号:{{ c.networkdevice.manufacture }}{{ c.networkdevice.model }}<br>业务线:{{ c.networkdevice.business_unit.name }}"></img></td>
+                        <td>{{ c.cabinet_order }}</td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+                </table>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block bottom-js %}
+    <script type="text/javascript">
+
+$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+  e.target // newly activated tab
+  e.relatedTarget // previous active tab
+})
+    </script>
+{% endblock %}

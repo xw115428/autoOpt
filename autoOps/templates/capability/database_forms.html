@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+    <style>
+    li{
+        cursor:pointer
+    }
+</style>
+{% endblock %}
+
+{% block content-panel %}
+<div style="margin-top: 50px">
+    <select class="selectpicker" id="hosts" data-style="btn-success" data-live-search="true">....
+        <option value="ALL" style="color: black">所有数据库</option>
+        <option  id="host" value="10.168.23.225">10.168.23.225</option>
+
+    </select>
+    <button type="button" class="btn btn-success" id="search">查询</button>
+</div>
+
+</br>
+<div>
+    <table class="table table-hover table-bordered">
+        <thead>
+            <tr>
+                <th>主机名</th>
+                <th>表空间</th>
+                <th>连接数平均值</th>
+                <th>连接数最大值</th>
+            </tr>
+        </thead>
+        <tbody id="cc">
+            {% for i in articles %}
+             <tr>
+                <td>{{ i.0 }}</td>
+                <td>{{ i.1 }}</td>
+                <td>{{ i.2 }}</td>
+             </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <nav aria-label="..." >
+        <ul class="pagination" id="page_froms">
+
+        </ul>
+    </nav>
+</div>
+{% endblock %}
+
+{% block bottom-js %}
+<script src="/static/js/bootstrap-select.min.js"></script>
+    <script>
+        $("#search").click(function () {
+            var hosts=$("#hosts").selectpicker('val');
+            $.ajax({
+                type:"POST",
+                    url:'{% url "database_search_post" %}',
+                    data:{"hosts":hosts},
+                    dataType:"json",
+                    success:function (callback) {
+                        console.log(callback)
+                        var tr=document.createElement("tr")
+                        $.each(callback,function (k,v) {
+                            td1=document.createElement("td")
+                            td2=document.createElement("td")
+                            pre=document.createElement("pre")
+                            td1.innerHTML=k
+                            pre.innerHTML=v
+                            td2.appendChild(pre)
+                            tr.appendChild(td1)
+                            tr.appendChild(td2)
+
+                        })
+                        console.log(tr)
+                        $("#cc").append(tr)
+                    }//end callback
+            })//end ajax
+        })//end search
+
+    </script>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+{% endblock %}
+
+{% block content-panel %}
+<div class="row">
+    <div class="col-md-8 col-xs-12 .col-sm-10">
+        <button type="button" id="add" class="btn btn-success" data-toggle="modal" data-target="#exampleModal">新增</button>
+        <button type="button" id="cancel" class="btn btn-success" disabled="disabled">取消</button>
+        <table class="table table-hover table-bordered table-condensed">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>主机组名称</th>
+                    <th style="width: 150px;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in HostGroup_list %}
+                <tr>
+                    <td id="{{ i.id }}">{{ i.id }}</td>
+                    <td edit_enable="true">{{ i.name }}</td>
+                    <td>
+                        <button type="button"  class="btn btn-success edit">编辑</button>
+                        <button type="button"  class="btn btn-success save" disabled="disabled">保存</button>
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">新增主机组</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">主机组名称</label>
+                        <input type="text" class="form-control" id="recipient-name">
+                    </div>
+                    <p class="col-lg-10 col-md-offset-1 bg-info remind hidden" id="err" >为空，请输入值</p>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success" id="modal_save">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block bottom-js %}
+    <script>
+        $(function () {
+            $("#modal_save").click(function () {
+                $("#err").addClass("hidden")
+                var name=$("#recipient-name").val()
+                if(name){
+                    $.ajax({
+                        type:"POST",
+                        url:"{% url 'asset_hostgroup_add_save' %}",
+                        data:{"name":name},
+                        dataType:"json",
+                        success:function (callback) {
+                            if(callback.status){
+                                window.location.reload()
+                            }
+                            else{
+                                $("#exampleModal").addClass("hidden")
+                                alert(callback.mes)
+                            }
+                        }//end callback
+                    })//end ajax
+                }//end if
+                else{
+                    $("#err").removeClass("hidden")
+                }//end else
+            }) //end click
+            $("#cancel").click(function () {
+                window.location.reload()
+            }) //end cancel
+            $(".edit").click(function () {
+                $("#cancel").removeAttr("disabled")
+                $(this).next().removeAttr("disabled")
+                $(this).parent().parent().children(":gt(0)").each(function () {
+                    var edit_enable=$(this).attr("edit_enable")
+                    var edit_type=$(this).attr("edit_type")
+                    if(edit_enable=="true"){
+                        if(edit_type=="select"){
+                        }//end 2 if
+                        else{
+                            var innerText = $(this).text();
+                            var tag = document.createElement('input');
+                            tag.className = "form-control col-xs-3";
+                            tag.value = innerText;
+                            $(this).html(tag);
+                        }//end else
+                    }//end 1 if
+                })//end each
+            })//end edit
+            $(".save").click(function () {
+                var val_array=new Array()
+                var id=$(this).parent().parent().children().eq(0).attr("id")
+                val_array.push(id)
+                $(this).parent().parent().children(":gt(0)").each(function () {
+                    var edit_enable=$(this).attr("edit_enable")
+                    var edit_type=$(this).attr("edit_type")
+                    if(edit_enable=="true"){
+                        if (edit_type == 'select'){
+                        }//end 2 if
+                        else{
+                            var name=$(this).children().first().val()
+                            val_array.push(name)
+                        }//end else
+                    }//end 1 if
+                })//end each
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'asset_hostgroup_edit_save' %}",
+                    data:{"name":val_array},
+                    dataType:"json",
+                    success:function (callback) {
+                        if(callback.status){
+                            window.location.reload()
+                        }
+                        else{
+                            alert(callback.mes)
+                        }
+                    }//end callback
+                })//end ajax
+
+            })//end save
+        })//end all
+    </script>
+{% endblock %}

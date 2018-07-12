@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+{% endblock %}
+
+{% block content-panel %}
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+            <div class="row x_title">
+                <div class="input-group">
+                  <input  id="hosts_list" type="text" class="form-control" placeholder="输入主机名，以逗号分隔,为空表示进行全量采集.列：name01,name02,name03">
+                  <span class="input-group-btn">
+                    <button class="btn  btn-success" type="button" task_type="get_data">执行采集</button>
+                  </span>
+                </div><!-- /input-group -->
+            </div>
+            <div class="alert alert-success hidden remind" role="alert">采集中，请等待。。。。。</div>
+            <div class="dashboard_graph">
+                 <div class="row">
+                    <table id="exec_result" class="table table-striped table-bordered">
+                    </table>
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div><!-- /.col-lg-6 -->
+    </div>
+
+
+
+
+{% endblock %}
+
+{% block bottom-js %}
+    <script type="text/javascript">
+    $(function () {
+        $("button").click(function () {
+            $("#exec_result").empty()
+            var task_type=$(this).attr('task_type')
+            var task_hosts=$("#hosts_list").val()
+            var data={}
+            data['task_type']=task_type
+            data['task_hosts']=task_hosts
+            data['input_command']=''
+            $(".remind").removeClass("hidden")
+            $.ajax({
+                type : 'POST',
+                url: "{% url 'get_data_ajax' %}",
+                dataType: "json",
+                data: data,
+                success:function (callback) {
+                    $(".remind").addClass("hidden")
+                     //   id=callback["data"]['taskjob_id']
+                     //   displayData(id)
+
+                    if(callback["data"]["status"]){
+                       $(".remind").addClass("hidden")
+                        id=callback["data"]['taskjob_id']
+                        displayData(id)
+                    }else{
+                        $(".remind").html(callback['data']["mes"])
+                    }//end if
+
+                }//end success function
+
+            })//end ajax
+
+            function displayData(id) {
+                $.ajax({
+                    type : 'POST',
+                    url: "{% url 'exec_result' %}",
+                    dataType: "json",
+                    data: {'id':id},
+                    success:function (callback) {
+                        var tr = document.createElement("tr")
+                        var th1 = document.createElement('th')
+                        th1.innerHTML = "id"
+                        var th2 = document.createElement('th')
+                        th2.innerHTML = "主机名"
+                        var th3 = document.createElement('th')
+                        th3.innerHTML = "执行命令"
+                        var th4 = document.createElement('th')
+                        th4.innerHTML = "执行结果"
+                        var th5 = document.createElement('th')
+                        th5.innerHTML = "执行完成时间"
+                        tr.append(th1)
+                        tr.append(th2)
+                        tr.append(th3)
+                        tr.append(th4)
+                        tr.append(th5)
+                        tr.className='btn-green'
+                        $("#exec_result").append(tr)
+                        $.each(callback,function (index,items) {
+
+                            var tr = document.createElement("tr")
+                            var td1 = document.createElement('td')
+                            td1.innerHTML = items.fields.jobname
+                            var td2 = document.createElement('td')
+                            td2.innerHTML = items.fields.exec_hostname
+                            var td3 = document.createElement('td')
+                            td3.innerHTML = items.fields.exec_command
+                            var td4 = document.createElement('td')
+                            td4.innerHTML = items.fields.exec_result
+                            var td5 = document.createElement('td')
+                            var result_date=items.fields.result_date.replace("T"," ")
+                            var result_date=date_format(result_date)
+                            td5.innerHTML=result_date
+                            {#td5.innerHTML = items.fields.result_date#}
+                            tr.append(td1)
+                            tr.append(td2)
+                            tr.append(td3)
+                            tr.append(td4)
+                            tr.append(td5)
+                            $("[task_id="+id+"]").parent().after(tr)
+                            $("#exec_result").append(tr)
+                        })//end each
+
+
+                    }//end success
+
+                })//end ajax
+
+            }//end displayData
+
+        })//button click
+        function date_format(time) {
+            var data = new Date(time);
+            var year = data.getFullYear();  //获取年
+            var month = data.getMonth() + 1;    //获取月
+            var day = data.getDate(); //获取日
+            var hours = data.getHours()< 10 ? "0" + data.getHours() : data.getHours();
+            var minutes = data.getMinutes()< 10 ? "0" + data.getMinutes() : data.getMinutes();
+            time = year + "年" + month + "月" + day + "日" + " " + hours + ":" + minutes;
+            return time
+        }//end date_format
+    })
+
+
+
+
+</script>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+{% endblock %}
+
+{% block content-panel %}
+<div class="row">
+    <div class="col-md-8 col-xs-12 .col-sm-12">
+        <button type="button" id="add" class="btn btn-success" data-toggle="modal" data-target="#exampleModal">新增</button>
+        <table class="table table-hover table-bordered table-condensed">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>业务线</th>
+                    <th>子系统</th>
+                    <th style="width: 150px;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in posts %}
+                <tr>
+                    <td id="{{ i.id }}">{{ i.id }}</td>
+                    <td class="business_unit" id="{{ i.business_unit.id }}">{{ i.business_unit.name }}</td>
+                    <td>{{ i.name }}</td>
+                    <td>
+                        <button type="button" class="btn btn-success edit" data-toggle="modal" data-target="#exampleModal">编辑</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <nav aria-label="...">
+            <ul class="pagination">
+                {% if posts.has_previous %}
+                <li><a href="{% url 'asset_childrensystem' %}?p={{ posts.previous_page_number }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+                {% else %}
+                <li class="disabled"><a href="" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+                {% endif %}
+
+                {% for i in posts.paginator.pager_num_range %}
+                    {% if i == posts.number  %}
+                <li class="active"><a href="{% url 'asset_childrensystem' %}?p={{ i }}">{{ i }} <span class="sr-only">(current)</span></a></li>
+                    {% else %}
+                <li><a href="{% url 'asset_childrensystem' %}?p={{ i }}">{{ i }} <span class="sr-only">(current)</span></a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if posts.has_next %}
+                <li><a href="{% url 'asset_childrensystem' %}?p={{ posts.next_page_number }}" aria-label="Previous"><span aria-hidden="true">&raquo;</span></a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="exampleModalLabel">新增子系统信息</h4>
+      </div>
+      <div class="modal-body">
+        <form id="form">
+            <div class="form-group">
+            <label for="recipient-name" class="control-label">业务线:</label>
+            <select class="selectpicker server" data-style="btn-success" data-live-search="true" id="asset__business_unit__name">
+            </select>
+          </div>
+          <div class="form-group" >
+              <label for="recipient-name" class="control-label">子系统名称:</label>
+               <input type="text" class="form-control server" id="name">
+          </div>
+            <p class="col-lg-10 col-md-offset-1 bg-info remind hidden" id="err" >为空，请输入值</p>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-success" id="save" server_id="">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block bottom-js %}
+    <script src="/static/js/bootstrap-select.min.js"></script>
+    <script>
+        $(function () {
+            $("#add").click(function () {
+                BusinessUnitOptList("asset_get_businessUnit","asset__business_unit__name")
+                $("input").each(function () {
+                    $(this).val("")
+                })
+            })
+            $(".edit").click(function () {
+                var id=$(this).parent().parent().children().first().attr("id")
+                var business_unit_id=$(this).parent().parent().children(".business_unit").attr("id")
+                BusinessUnitOptList("asset_get_businessUnit","asset__business_unit__name",business_unit_id)
+                $("#save").attr("server_id",id)
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'asset_chsystem_edit' %}",
+                    data:{"id":id},
+                    dataType:"json",
+                    success:function (callback){
+                        $.each(callback,function (i,item) {
+                            $("input#"+i+"").val(item)
+                        })
+                    }
+                })//end ajax
+            })//end edit
+            $("#save").click(function () {
+                var val_array={}
+                var id=$(this).attr("server_id")
+                $("input.server").each(function (i) {
+                    k=$(this).attr("id")
+                    v=$(this).val()
+                    if(v.length==0){
+                        val_array[k]=null
+                    }else{
+                        val_array[k]=v
+                    }
+
+                })//end each
+                $("select.server").each(function (i) {
+                    k=$(this).attr("id")
+                    v=$(this).selectpicker('val')
+                    val_array[k]=v
+                })//end each
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'asset_chsystem_save' %}",
+                    data:{"data":JSON.stringify(val_array),"id":id},
+                    dataType:"json",
+                    success:function (callback) {
+                        if(callback.status){
+                            window.location.reload()
+                        }
+                        else{
+                            alert(callback.mes)
+                        }
+                    }//end callback
+                })//end ajax
+            })//end save
+            function BusinessUnitOptList(url,id,business_unit_id="1") {
+                $.ajax({
+                    type:"POST",
+                    url:"/asset/"+url+"/",
+                    dataType:"json",
+                    success:function (callback){
+                        $("#"+id+"").empty()
+                        $.each(callback,function (i,item) {
+                            var op=document.createElement("option")
+                            op.value=item.pk
+                            op.innerHTML=item.fields.name
+                            $("#"+id+"").append(op)
+                            $("#"+id+"").selectpicker('val',business_unit_id);
+                            $("#"+id+"").selectpicker('refresh');
+                        })
+                    }
+
+                })
+            }
+
+        })//end all
+    </script>
+{% endblock %}

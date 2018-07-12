@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+{% endblock %}
+
+{% block content-panel %}
+<div class="container">
+    <div class="col-lg-3 row">
+        <div class="well well-sm">
+        <h3 style="color: green">选择主机</h3>
+        <ul class="list-group">
+            <li class="list-group-item">
+                <span class="badge">{{ hosts_list.count }}</span>
+                <input type="checkbox" value="all_host" class="hostGroupBox">
+                <span style="cursor:pointer" class="hostGroup">all_host</span>
+                <span class="all_host hidden" >
+                    {% for hosts in hosts_list %}
+                    <ul class="hosts_list">
+                        <input type="checkbox" value="{{ hosts.hostname }}">
+                        {{ hosts.hostname }}
+                    </ul>
+                    {% endfor %}
+                </span>
+            </li>
+            {% for hostgroup in hostgroups_list %}
+            <li class="list-group-item">
+                <span class="badge">{{ hostgroup.server_set.count }}</span>
+                <input type="checkbox" value="{{ hostgroup.id }}" class="hostGroupBox">
+                <span style="cursor:pointer" class="hostGroup">{{ hostgroup.name }}</span>
+                <span class="{{ hostgroup.name }} hidden">
+                    {% for host in hostgroup.server_set.all %}
+                    <ul class="hosts_list">
+                        <input type="checkbox" value="{{ host.hostname }}">
+                        {{ host.hostname }}
+                    </ul>
+                    {% endfor %}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    </div>
+    <div class="row col-lg-9">
+            <div class="input-group col-lg-10 col-md-offset-1">
+                <select style="width: 150px;height: 35px" id="soft_intall" >
+                    <option>请选择软件名</option>
+                    {% for key,value in soft_list.items %}
+                    <option value="{{ key }}">{{ value }}</option>
+                    {% endfor %}
+                </select>
+              <span class="input-group-btn">
+                <button class="btn btn-success" type="button" task_type="exec_sls">执行安装</button>
+              </span>
+
+            </div><!-- /input-group -->
+            <br/>
+            <span id="apped_i" class="col-lg-11 col-md-offset-1">
+                <div class="row" id="exec_result">
+                    <table class="table table-hover table-bordered">
+                        <thead>
+                            <tr>
+                                <th id="cc">任务id</th>
+                                <th>任务类型</th>
+                                <th>执行人姓名</th>
+                                <th>执行内容</th>
+                                <th>执行时间</th>
+                                <th></th>
+                            </tr>
+
+                        </thead>
+                        <tbody id="cc">
+                            {% for i in TaskJob_obj %}
+                             <tr>
+                                <td task_id="{{ i.id }}">{{ i.id }}</td>
+                                <td>{{ i.task_type }}</td>
+                                <td>{{ i.exec_user.name }}</td>
+                                <td>{{ i.exec_info }}</td>
+                                <td>{{ i.exec_date }}</td>
+                                <td><a class="btn btn-success" href="/batch_exec/batch_install-{{ i.id }}/"><span>查看执行结果</span></a></td>
+                             </tr>
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+            </span>
+</div>
+
+</div>
+{% endblock %}
+
+{% block bottom-js %}
+    <script type="text/javascript">
+    $(function () {
+        //点击主机组后出现主机
+        $(".hostGroup").click(function () {
+            var htm=$(this).html()
+            if($("."+htm).hasClass("hidden")){
+                $("."+htm).removeClass("hidden")
+            }else{
+                $("."+htm).addClass("hidden")
+            }//end if
+
+        })//end hostGroup click
+
+        $(".hostGroupBox").click(function () {
+            if($(this).attr("checked")){
+                $(this).attr("checked",false)
+                $(this).parent().find('ul input').prop("checked",false)
+            }else{
+                $(this).attr("checked",true)
+                $(this).parent().find('ul input').prop("checked",true)
+            }
+        })//全选,反选
+
+        $("[task_type='exec_sls']").click(function () {
+            $("#err").html("")
+            var input_command=$("#soft_intall").val()
+            var all_hosts=$(".hosts_list input")
+            var selected_hosts = [];
+            var task_type=$(this).attr("task_type")
+            $.each(all_hosts, function(index,ele){
+                if(ele.checked){
+                    selected_hosts.push($(ele).val());
+                }
+            });//循环判断主机是否被选中
+            if(selected_hosts.length==0){
+                    $("#err").html("操作错误：没有选中任何主机。。。。")
+            }//判断输入是否为空
+            else{
+                //$("#err").html("安装中，请稍等。。。。。！")
+                var data={"input_command":input_command,"selected_hosts":selected_hosts,"task_type":task_type}
+                console.log(data)
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'batch_install_ajax' %}",
+                    data: data,
+                    dataType: "json",
+                    success: function(callback) {
+                        if(callback.status){
+                            location.reload()
+                        }else{
+                            alert(callback.result)
+                        }
+                    }//end callback
+                })//end ajax
+            }//end else 讲数据发送到后台
+        })//获取选中的主机和要执行的命令
+    })//页面加载完成后才执行
+</script>
+{% endblock %}

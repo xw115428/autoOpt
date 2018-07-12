@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+{% endblock %}
+
+{% block content-panel %}
+<div class="row tile_count">
+  <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+      <span class="count_top green"><i class="fa fa-desktop"></i>已监控机器数</span>
+      <div class="count">{{ hosts_count }}</div>
+  </div>
+  <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+      <span class="count_top green"><i class="fa fa-shield"></i>监控项总数量</span>
+      <div class="count">{{ items_count }}</div>
+  </div>
+  <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+      <span class="count_top green"><i class="fa fa-desktop"></i>服务器总数</span>
+      <div class="count">{{ service }}</div>
+  </div>
+
+  <div class="col-md-2 col-sm-4 col-xs-6 tile_stats_count">
+      <span class="count_top green"><i class="fa fa-user"></i>网络设备总数</span>
+      <div class="count">{{ network }}</div>
+      </span>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12 col-sm-12 col-xs-12">
+      <div class="dashboard_graph">
+          <div class="row x_title">
+              <div class="col-md-6">
+                <h3>性能统计 <small>7天内平均值</small></h3>
+              </div>
+          </div>
+          <div class="col-md-6 col-sm-3 col-xs-12 bg-white">
+              <div class="x_title">
+                  <h2 class="green">cpu曲线图</h2>
+                  <div class="clearfix"></div>
+              </div>
+              <div class="col-md-12 col-sm-12 col-xs-6" id="cpu">
+
+              </div>
+
+          </div>
+          <div class="col-md-6 col-sm-3 col-xs-12 bg-white">
+              <div class="x_title">
+                  <h2 class="green">内存曲线图</h2>
+                  <div class="clearfix"></div>
+              </div>
+              <div class="col-md-12 col-sm-12 col-xs-6" id="mem">
+
+              </div>
+          </div>
+
+          <div class="clearfix"></div>
+      </div>
+  </div>
+</div>
+<br>
+<div class="row">
+  <div class="col-md-4 col-sm-4 col-xs-12">
+      <div class="x_panel tile fixed_height_320">
+          <div class="x_title">
+              <h2>用户信息</h2>
+              <ul class="nav navbar-right panel_toolbox">
+                  <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+              </ul>
+              <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+          <div class="dashboard-widget-content">
+              <div class="widget_summary">
+                      <div class="w_left w_25">
+                          <span class="green">用户账号:</span>
+                      </div>
+                      <div class="w_center w_70">
+                          <div class="progress">
+                              <span >{{ request.user.email}}</span>
+                          </div>
+                      </div>
+                  </div>
+              <div class="widget_summary">
+                      <div class="w_left w_25">
+                          <span class="green">姓名:</span>
+                      </div>
+                      <div class="w_center w_70">
+                          <div class="progress">
+                              <span >{{ request.user.name}}</span>
+                          </div>
+                      </div>
+                  </div>
+              <div class="widget_summary">
+                      <div class="w_left w_25">
+                          <span class="green">角色:</span>
+                      </div>
+                      <div class="w_center w_70">
+                          <div class="progress">
+                              {% if request.user.is_admin %}
+                              <span>系统管理员</span>
+                              {% else %}
+                              <span>普通用户</span>
+                              {% endif %}
+                          </div>
+                      </div>
+                  </div>
+              <div class="widget_summary">
+                      <div class="w_left w_25">
+                          <span class="green">创建时间:</span>
+                      </div>
+                      <div class="w_center w_70">
+                          <div class="progress">
+                              <span >{{ request.user.date_joined}}</span>
+                          </div>
+                      </div>
+                  </div>
+              <div class="widget_summary">
+                  <div class="w_left w_25">
+                      <span  class="green">最后登陆时间:</span>
+                  </div>
+                  <div class="w_center w_70">
+                      <div class="progress">
+                          <span>{{ request.user.last_login}}</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          </div>
+      </div>
+  </div>
+    <div class="col-md-4 col-sm-4 col-xs-12">
+        <div class="x_panel tile fixed_height_320 overflow_hidden">
+            <div class="x_title">
+              <h2>资产统计</h2>
+              <ul class="nav navbar-right panel_toolbox">
+                  <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+              </ul>
+              <div class="clearfix"></div>
+          </div>
+            <div class="x_content">
+                <div class="dashboard-widget-content">
+                    <table class="countries_list">
+                        <thead>
+                  <tr class="green">
+                      <th>业务线</th>
+                      <th class="fs15 fw700 text-right">子系统数</th>
+                      <th class="fs15 fw700 text-right">网络设备数</th>
+                      <th class="fs15 fw700 text-right">服务器数</th>
+                  </tr>
+                  </thead>
+                        <tbody>
+                  {% for k,v in data_dic.items %}
+                  <tr>
+                      <td>{{ k }}</td>
+
+                      <td class="fs15 fw700 text-right">{{ v.0|length }}</td>
+                      <td class="fs15 fw700 text-right">{{ v.1|length }}</td>
+                      <td class="fs15 fw700 text-right">{{ v.2|length }}</td>
+                  </tr>
+                  {% endfor %}
+                  </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  <div class="col-md-4 col-sm-4 col-xs-12">
+      <div class="x_panel tile fixed_height_320">
+          <div class="x_title">
+              <h2>最近登陆</h2>
+              <ul class="nav navbar-right panel_toolbox">
+                  <li><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></li>
+              </ul>
+              <div class="clearfix"></div>
+          </div>
+          <div class="x_content">
+              <div class="dashboard-widget-content">
+                  <table class="countries_list">
+                      <thead>
+                      <tr class="green">
+                          <th>登陆账户</th>
+                          <th class="fs15 fw700 text-right">登陆名</th>
+                          <th class="fs15 fw700 text-right">登陆时间</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      {% for i in login_info %}
+                      <tr>
+                          <td>{{ i.user.email }}</td>
+                          <td class="fs15 fw700 text-right">{{ i.user.name }}</td>
+                          <td class="fs15 fw700 text-right">{{ i.login_date }}</td>
+                      </tr>
+                      {% endfor %}
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+      </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block bottom-js %}
+    <script src="/static/js/highcharts.js"></script>
+    <script>
+        $(function () {
+            initcpu()
+            function initcpu() { //把获取的值通过ajax发送到后台，获取数据
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'index_data' %}",
+                    dataType:"json",
+                    success:function (callback) {
+                        callback_data=callback.data
+                        for(i in callback_data){
+                            data=callback_data[i]
+                           myHighcharts(i,data)
+                        }//end for
+                    }//end callback
+                }) //end ajax
+            }//end init
+            function myHighcharts(name,callback) { //生成图像
+                data=callback.data
+                var data_list=new Array()
+                //循环数据生成一个符合图形需求的字典
+                for(i in data){
+                    var data_value=new Array()
+                    for(j in data[i]){
+                        data_value.push(data[i][j][0])
+                        }
+                    data_list.push({'name':[i],'data':data_value})
+                    }
+                // 图表配置
+                var options_name = {
+                    chart: {
+                        type: 'line'                          //指定图表的类型，默认是折线图（line）
+                    },
+                    title: {
+                        text:callback.text        // 标题
+                    },
+                    xAxis: {
+                        categories: callback.date_list  // x 轴分类
+                    },
+                    yAxis: {
+                        title: {
+                            text: "平均值"                // y 轴标题
+                        }
+                    },
+                    plotOptions: {
+                        line: {
+                            connectNulls: true,
+                            dataLabels: {
+                            // 开启数据标签
+                            enabled: true
+                            },
+                        }
+                    },
+                    series: data_list
+                };
+                // 图表初始化函数
+                var chart = Highcharts.chart(name, options_name);
+            }//my_Highcharts
+        })
+    </script>
+{% endblock %}

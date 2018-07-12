@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+{% endblock %}
+
+{% block content-panel %}
+<div class="row">
+    <div class="col-md-8 col-xs-12 .col-sm-10">
+        <button type="button" id="add" class="btn btn-success" data-toggle="modal" data-target="#exampleModal">新增</button>
+        <button type="button" id="cancel" class="btn btn-success" disabled="disabled">取消</button>
+        <table class="table table-hover table-bordered table-condensed">
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>设备类型</th>
+                    <th>主机名</th>
+                    <th>机柜列</th>
+                    <th>机柜号</th>
+                    <th>机柜中序号</th>
+                    <th>属于的业务线</th>
+                    <th>保修时间</th>
+                    <th>购买时间</th>
+                    <th style="width: 150px;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in info_list %}
+                <tr>
+                    <td id="{{ i.id }}">{{ i.id }}</td>
+                    <td edit_enable="true" td_name="device_type_id" edit_type="choices" id="{{ i.device_type_id }}_{{ i.id }}">{{ i.get_device_type_id_display}}</td>
+                    <td>{{ i.server.hostname }}</td>
+                    <td edit_enable="true" td_name="cabinets_column">{{ i.cabinets_column}}</td>
+                    <td edit_enable="true" td_name="cabinet_num">{{ i.cabinet_num }}</td>
+                    <td edit_enable="true" td_name="cabinet_order">{{ i.cabinet_order }}</td>
+                    <td edit_enable="true" td_name="business_unit_id" edit_type="select" id="assetInfoGetBusinessUnit_{{ i.id }}">{{ i.business_unit.name }}</td>
+                    <td edit_enable="true" td_name="guarantee_time">{{ i.guarantee_time }}</td>
+                    <td edit_enable="true" td_name="buy_date" edit_type="date">{{ i.buy_date }}</td>
+                    <td>
+                        <button type="button" class="btn btn-success edit">编辑</button>
+                        <button type="button"  class="btn btn-success save" disabled="disabled">保存</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">新增资产信息</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group" >
+                        <label for="recipient-name" class="control-label">设备名称:</label>
+                        <select class="selectpicker" data-style="btn-success" data-live-search="true" id="choices_list">
+
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">机柜排数:</label>
+                        <input type="text" class="form-control" id="cabinets_column">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">机柜号:</label>
+                        <input type="text" class="form-control" id="cabinet_num">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">机柜中序号:</label>
+                        <input type="text" class="form-control" id="cabinet_order">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">属于的业务线:</label>
+                        <select class="selectpicker" data-style="btn-success" data-live-search="true" id="business_unit">
+
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">保修时间:</label>
+                        <input type="text" class="form-control" id="guarantee_time">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipient-name" class="control-label">购买时间:</label>
+                        <input type="date" class="form-control" id="buy_date">
+                    </div>
+                    <p class="col-lg-10 col-md-offset-1 bg-info remind hidden" id="err" >为空，请输入值</p>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success" id="modal_save">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block bottom-js %}
+    <script src="/static/js/bootstrap-select.min.js"></script>
+      <script>
+        $(function () {
+            $("#add").click(function () {
+                getOptChoices("choices_list")
+                getOptList("assetInfoGetBusinessUnit","business_unit")
+            })//end add click
+            $("#modal_save").click(function () {
+                $("#err").addClass("hidden")
+                var device_type_id=$("#choices_list").val()
+                var cabinets_column=$("#cabinets_column").val()
+                var cabinet_num=$("#cabinet_num").val()
+                var cabinet_order=$("#cabinet_order").val()
+                var business_unit=$("#business_unit").val()
+                var guarantee_time=$("#guarantee_time").val()
+                var buy_date=$("#buy_date").val()
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'asset_info_add_save' %}",
+                    data:{"device_type_id":device_type_id,"cabinet_num":cabinet_num,'cabinet_order':cabinet_order,'business_unit':business_unit,'guarantee_time':guarantee_time,'buy_date':buy_date,'cabinets_column':cabinets_column},
+                    dataType:"json",
+                    success:function (callback){
+                        if(callback.status){
+                            window.location.reload()
+                        }
+                        else{
+                            alert(callback.mes)
+                        }
+                    }
+                })
+            }) //end click
+            $("#cancel").click(function () {
+                window.location.reload()
+            }) //end cancel
+            $(".edit").click(function () {
+                $("#cancel").removeAttr("disabled")
+                $(this).next().removeAttr("disabled")
+                $(this).parent().parent().children(":gt(0)").each(function (i) {
+                    var edit_enable=$(this).attr("edit_enable")
+                    var edit_type=$(this).attr("edit_type")
+                    var td_name=$(this).attr("td_name")
+                    if(edit_enable=="true"){
+                        if(edit_type=="choices"){
+                            var id=$(this).attr("id")
+                            var sl=document.createElement("select")
+                            sl.className="selectpicker"
+                            sl.setAttribute("data-style","btn-success")
+                            sl.setAttribute("data-live-search","true")
+                            sl.setAttribute("id",id+i)
+                            sl.setAttribute("data-width",'fit')
+                            sl.setAttribute("ed_name",td_name)
+                            $(this).html(sl);
+                            getOptChoices(id+i)
+
+                        }//end 2 if
+                        else if(edit_type=="select"){
+                            var id=$(this).attr("id")
+                            url=id.split("_")[0]
+                            var sl=document.createElement("select")
+                            sl.className="selectpicker"
+                            sl.setAttribute("data-style","btn-success")
+                            sl.setAttribute("data-live-search","true")
+                            sl.setAttribute("id",id+i)
+                            sl.setAttribute("data-width",'fit')
+                            sl.setAttribute("ed_name",td_name)
+                            $(this).html(sl);
+                            if(url=="assetInfoGetCabinetNum"){
+                                ca_id=$(this).siblings("[td_name=cabinets_column]").attr("id")
+                                console.log(ca_id)
+                                getOptList(url,id+i,ca_id)
+                            }
+                            else{
+                                getOptList(url,id+i)
+                            }
+                        }
+                        else if(edit_type=="date"){
+                            var innerText = $(this).text();
+                            var ipt=document.createElement("input");
+                            ipt.className="form-control";
+                            ipt.setAttribute("type","date");
+                            ipt.setAttribute("ed_name",td_name)
+                            innerText=innerText.replace(/[^\x00-\xff]/g,"/")
+                            ipt.valueAsDate=new Date(innerText)
+                            $(this).html(ipt);
+                        }
+                        else{
+                            var innerText = $(this).text();
+                            var tag = document.createElement('input');
+                            tag.className = "form-control col-xs-3";
+                            tag.setAttribute("ed_name",td_name)
+                            tag.value = innerText;
+                            $(this).html(tag);
+                        }//end else
+                    }//end 1 if
+                })//end each
+            })//end edit
+            $(".save").click(function () {
+                var val_array=new Array()
+                var id=$(this).parent().parent().children().eq(0).attr("id");
+                val_array.push(id)
+                $(this).parent().parent().children(":gt(0)").each(function () {
+                    var edit_enable=$(this).attr("edit_enable");
+                    var edit_type=$(this).attr("edit_type");
+                    if(edit_enable=="true"){
+                        if(edit_type=="choices"||edit_type=="select"){
+                            var td_name=$(this).attr("td_name")
+                            var td_value=$(this).find("select").selectpicker('val');
+                            val_array.push(td_value)
+                        }//end 2 if
+                        else{
+                            var td_name=$(this).attr("td_name")
+                            var td_value=$(this).children().first().val()
+                            val_array.push(td_value)
+                        }//end else
+                    }//end 1 if
+                })//end each
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'asset_info_edit_save' %}",
+                    data:{"name":val_array},
+                    dataType:"json",
+                    success:function (callback) {
+                        if(callback.status){
+                            window.location.reload()
+                        }
+                        else{
+                            alert(callback.mes)
+                        }
+                    }//end callback
+                })//end ajax
+
+            })//end save
+
+            function getOptChoices(id) {
+                $.ajax({
+                    type:"POST",
+                    url:"{% url 'asset_info_get_choices' %}",
+                    dataType:"json",
+                    success:function (callback){
+                        $("#"+id+"").empty()
+                        $.each(callback,function (i,item) {
+                            var op=document.createElement("option")
+                            op.value=item[0]
+                            op.innerHTML=item[1]
+                            $("#"+id+"").append(op)
+                            $("#"+id+"").selectpicker('refresh');
+                        })
+                    }
+
+                })//end ajax
+            }//end getOptChoices
+            function getOptList(url,id) {
+                $.ajax({
+                    type:"POST",
+                    url:"/asset/"+url+"/",
+                    dataType:"json",
+                    success:function (callback){
+                        $("#"+id+"").empty()
+                        $.each(callback,function (i,item) {
+                            var op=document.createElement("option")
+                            op.value=item.pk
+                            op.innerHTML=item.fields.name
+                            $("#"+id+"").append(op)
+                            $("#"+id+"").selectpicker('refresh');
+                        })
+                    }
+
+                })
+            }
+        })//end all
+    </script>
+{% endblock %}

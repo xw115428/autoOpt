@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block head-css %}
+{% endblock %}
+
+{% block content-panel %}
+<div class="container">
+    <div class="col-lg-3 row">
+        <div class="well well-sm">
+        <h3 style="color: green">选择主机</h3>
+        <ul class="list-group">
+            <li class="list-group-item">
+                <span class="badge">{{ hosts_list.count }}</span>
+                <input type="checkbox" value="all_host" class="hostGroupBox">
+                <span style="cursor:pointer" class="hostGroup">all_host</span>
+                <span class="all_host hidden" >
+                    {% for hosts in hosts_list %}
+                    <ul class="hosts_list">
+                        <input type="checkbox" value="{{ hosts.hostname }}">
+                        {{ hosts.hostname }}
+                    </ul>
+                    {% endfor %}
+                </span>
+            </li>
+            {% for hostgroup in hostgroups_list %}
+            <li class="list-group-item">
+                <span class="badge">{{ hostgroup.server_set.count }}</span>
+                <input type="checkbox" value="{{ hostgroup.id }}" class="hostGroupBox">
+                <span style="cursor:pointer" class="hostGroup">{{ hostgroup.name }}</span>
+                <span class="{{ hostgroup.name }} hidden">
+                    {% for host in hostgroup.server_set.all %}
+                    <ul class="hosts_list">
+                        <input type="checkbox" value="{{ host.hostname }}">
+                        {{ host.hostname }}
+                    </ul>
+                    {% endfor %}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    </div>
+    <div class="row col-lg-9">
+            <div class="input-group col-lg-10 col-md-offset-1">
+              <input  type="text" class="form-control" id="input_cmd" placeholder="输入命令">
+              <span class="input-group-btn">
+                <button class="btn btn-success" type="button" task_type="exec_cmd">执行命令</button>
+              </span>
+
+            </div><!-- /input-group -->
+            <p class="col-lg-10 col-md-offset-1 bg-info remind" id="err" ></p>
+            <br/>
+            <span id="apped_i" class="col-lg-10 col-md-offset-1">
+
+            </span>
+</div>
+
+</div>
+{% endblock %}
+
+{% block bottom-js %}
+    <script type="text/javascript">
+    $(function () {
+        //点击主机组后出现主机
+        $(".hostGroup").click(function () {
+            var htm=$(this).html()
+            if($("."+htm).hasClass("hidden")){
+                $("."+htm).removeClass("hidden")
+            }else{
+                $("."+htm).addClass("hidden")
+            }//end if
+
+        })//end hostGroup click
+
+        $(".hostGroupBox").click(function () {
+
+            if($(this).attr("checked")){
+                $(this).attr("checked",false)
+                $(this).parent().find('ul input').prop("checked",false)
+            }else{
+                $(this).attr("checked",true)
+                $(this).parent().find('ul input').prop("checked",true)
+            }
+        })//全选,反选
+
+        $("[task_type='exec_cmd']").click(function () {
+            $("#apped_i").empty()
+            var input_command=$("#input_cmd").val()
+            var all_hosts=$(".hosts_list input")
+            var selected_hosts = [];
+            var task_type=$(this).attr("task_type")
+            $.each(all_hosts, function(index,ele){
+                if(ele.checked){
+                    selected_hosts.push($(ele).val());
+                }
+            });//循环判断主机是否被选中
+            if(input_command.length==0 || selected_hosts.length==0){
+                    $("#err").html("操作错误：没有选中任何主机或没有输入任何指令。。。。")
+            }//判断输入是否为空
+            else{
+                $("#err").html("命令执行中，请稍等。。。。。！")
+                var data={"input_command":input_command,"selected_hosts":selected_hosts,"task_type":task_type}
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'batch_cmd_ajax' %}",
+                    data: data,
+                    dataType: "json",
+                    success: function(callback) {
+                        if(callback.status){
+                            //将执行的结果显示在屏幕上
+                            /*
+                            <div class="panel panel-default  col-md-offset-1">
+                                <div class="panel-heading">主机名</div>
+                                <div class="panel-body">
+                                    <p>返回结果</p>
+                                </div>
+                            </div>
+                             */
+                            $("#err").html("")
+
+
+                            for( i in callback.data['result_cmd']){
+                                //动态生成html
+                                var i_div=document.createElement("div")
+                                i_div.className="panel"
+                                i_div.className+=" panel-default"
+                                i_div.className+=" col-lg-13"
+                                //i_div.className+=" col-md-offset-1"
+                                var i_div1=document.createElement("div")
+                                i_div1.className="panel-heading"
+                                i_div1.innerHTML=i+"执行结果："
+                                var i_div2=document.createElement("div")
+                                i_div2.className="panel-body"
+                                var i_pre=document.createElement("pre")
+                                i_pre.className="col-lg-12"
+                                i_pre.innerHTML=callback.data['result_cmd'][i]
+                                i_div2.append(i_pre)
+                                i_div.append(i_div1)
+                                i_div.append(i_div2)
+                                $("#apped_i").append(i_div)
+                            }//end for
+
+
+                        }else{
+                            $("#err").html("")
+                            $("#apped_i").empty()
+                            $("#err").html(callback.data)
+                        }//end if
+                    }//ajax执行成功后返回的操作
+                })//end ajax
+            }//end else 讲数据发送到后台
+
+        })//获取选中的主机和要执行的命令
+    })//页面加载完成后才执行
+</script>
+{% endblock %}

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<!-- saved from url=(0040)https://colorlib.com/polygon/gentelella/ -->
+<html lang="en" class=" ">
+    <head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>autoOps</title>
+
+        <!-- Bootstrap -->
+        <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/static/css/bootstrap-select.min.css" rel="stylesheet">
+        <!-- Font Awesome -->
+        <link href="/static/css/font-awesome.min.css" rel="stylesheet">
+        <!-- NProgress -->
+        <link href="/static/css/nprogress.css" rel="stylesheet">
+        <!-- iCheck -->
+        <link href="/static/css/green.css" rel="stylesheet">
+
+        <!-- bootstrap-progressbar -->
+        <link href="/static/css/bootstrap-progressbar-3.3.4.min.css" rel="stylesheet">
+        <!-- JQVMap -->
+        <link href="/static/css/jqvmap.min.css" rel="stylesheet">
+        <!-- bootstrap-daterangepicker -->
+        <link href="/static/css/daterangepicker.css" rel="stylesheet">
+
+        <!-- Custom Theme Style -->
+        <link href="/static/css/custom.min.css" rel="stylesheet">
+        {% block head-css %}
+        {% endblock %}
+    </head>
+
+    <body class="nav-md">
+        <div class="container body">
+            <div class="main_container">
+                <div class="col-md-3 left_col">
+                    <div class="left_col scroll-view">
+                        <div class="navbar nav_title" style="border: 0;">
+                              <a href="{% url 'index' %}" class="site_title">
+                                  <i class="fa fa-paw"></i>
+                                  <span>自动化运维平台</span>
+                              </a>
+                        </div>
+
+                        <div class="clearfix"></div>
+
+                        <!-- menu profile quick info -->
+                        <div class="profile clearfix">
+                          <div class="profile_pic">
+                            <img src="/static/img/img.jpg" alt="..." class="img-circle profile_img">
+                          </div>
+                          <div class="profile_info">
+                            <span>欢迎登陆</span>
+                            <h2>{{ request.user.name }}</h2>
+                          </div>
+                        </div>
+                        <!-- /menu profile quick info -->
+
+                        <br>
+
+                        <!-- sidebar menu -->
+                        <div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
+                            <div class="menu_section">
+                                <h3>General</h3>
+                                <ul class="nav side-menu">
+                                    <li><a href="{% url 'index' %}"><i class="fa fa-home"></i>首页</a></li>
+                                    {% for i in permission_list %}
+                                        {% if i.group_twomenu_permission_set.values %}
+                                        <li>
+                                            <a>
+                                                <i class="fa fa-edit"></i>{{ i.onemenu_name }}
+                                                <span class="fa fa-chevron-down"></span>
+                                            </a>
+                                            <ul class="nav child_menu">
+                                                {% for c in i.group_twomenu_permission_set.values %}
+                                                <li><a href="{% url c.twomenu_url %}">{{ c.twomenu_name }}</a></li>
+                                                 {% endfor %}
+                                            </ul>
+                                        </li>
+                                        {% endif %}
+                                    {% endfor %}
+{#                                    <li>#}
+{#                                        <a>#}
+{#                                            <i class="fa fa-edit"></i> 资产管理#}
+{#                                            <span class="fa fa-chevron-down"></span>#}
+{#                                        </a>#}
+{#                                        <ul class="nav child_menu">#}
+{#                                            <li><a href="{% url 'asset_Cabinets' %}">机柜展示图</a></li>#}
+{#                                            <li><a href="{% url 'asset_businessunit' %}">业务线管理</a></li>#}
+{#                                            <li><a href="{% url 'asset_childrensystem' %}">子系统管理</a></li>#}
+{#                                            <li><a href="{% url 'asset_cabinetscolum' %}">机柜列管理</a></li>#}
+{#                                            <li><a href="{% url 'asset_cabinetsnum' %}">机柜管理</a></li>#}
+{#                                            <li><a href="{% url 'asset_server' %}">服务器管理</a></li>#}
+{#                                            <li><a href="{% url 'asset_network' %}">网络设备管理</a></li>#}
+{#                                            <li><a href="{% url 'asset_hostgroup' %}">主机组管理</a></li>#}
+{#                                        </ul>#}
+{#                                    </li>#}
+{##}
+{#                                    <li>#}
+{#                                        <a>#}
+{#                                            <i class="fa fa-desktop"></i>批量管理#}
+{#                                            <span class="fa fa-chevron-down"></span>#}
+{#                                        </a>#}
+{#                                        <ul class="nav child_menu">#}
+{#                                            <li><a href="{% url 'batch_cmd' %}">批量命令</a></li>#}
+{#                                            <li><a href="{% url 'batch_install' %}">配置管理</a></li>#}
+{#                                            <li><a href="{% url 'version_update' %}">版本发布</a></li>#}
+{#                                            <li><a href="{% url 'get_data' %}">资产收集</a></li>#}
+{#                                        </ul>#}
+{#                                    </li>#}
+{##}
+{#                                    <li>#}
+{#                                        <a>#}
+{#                                            <i class="fa  fa-bar-chart-o"></i> 性能统计#}
+{#                                            <span class="fa fa-chevron-down"></span>#}
+{#                                        </a>#}
+{#                                        <ul class="nav child_menu">#}
+{#                                            <li><a href="{% url 'graphs' %}">曲线图</a></li>#}
+{#                                            <li><a href="{% url 'report_forms' %}">报表</a></li>#}
+{#                                        </ul>#}
+{#                                    </li>#}
+{#                                    <li>#}
+{#                                        <a><i class="fa fa-table"></i>任务日志#}
+{#                                            <span class="fa fa-chevron-down"></span>#}
+{#                                        </a>#}
+{#                                        <ul class="nav child_menu">#}
+{#                                            <li><a href="{% url 'all_log' %}/?p=1">全部日志</a></li>#}
+{#                                            <li><a href="#">批量命令</a></li>#}
+{#                                            <li><a href="#">软件安装</a></li>#}
+{#                                            <li><a href="#">上传下载</a></li>#}
+{#                                            <li><a href="#">版本发布</a></li>#}
+{#                                            <li><a href="#">资产收集</a></li>#}
+{##}
+{#                                        </ul>#}
+{#                                    </li>#}
+                                </ul>
+                            </div>
+                            <div class="menu_section">
+                                <h3>保留项</h3>
+                                <ul class="nav side-menu">
+                                    <li>
+                                        <a>
+                                            <i class="fa fa-bug"></i>拓展
+                                            <span class="fa fa-chevron-down"></span>
+                                        </a>
+                                    </li>
+                                    <ul class="nav child_menu">
+                                        <li><a href="#">其他</a></li>
+                                    </ul>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- top navigation -->
+                <div class="top_nav">
+                    <div class="nav_menu">
+                        <nav>
+                            <div class="nav toggle">
+                                <a id="menu_toggle"><i class="fa fa-bars"></i></a>
+                            </div>
+
+                            <ul class="nav navbar-nav navbar-right">
+                                <li class="">
+                                    <a href="javascript:;" class="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                    <img src="/static/img/img.jpg" alt="">{{ request.user.name }}
+                                    <span class=" fa fa-angle-down"></span>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-usermenu pull-right">
+                                        <li>
+                                            <a href="{% url 'logout' %}">
+                                                <i class="fa fa-sign-out pull-right"></i> LogOut
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                <!-- /top navigation -->
+
+                <!-- page content -->
+                <div class="right_col" role="main" style="min-height: 1666px;">
+                  <!-- top tiles -->
+                    {% block content-panel %}
+
+                    {% endblock %}
+                </div>
+
+                <footer>
+                    <div class="pull-right">
+                        武汉电子口岸by <a href="http://www.wh-eport.cn">单一窗口</a>
+                    </div>
+                    <div class="clearfix"></div>
+                </footer>
+                <!-- /footer content -->
+            </div>
+        </div>
+
+        <!-- jQuery -->
+
+        <script src="/static/js/jquery.min.js"></script>
+        <!-- Bootstrap -->
+        <script src="/static/js/bootstrap.min.js"></script>
+        <!-- FastClick -->
+        <script src="/static/js/fastclick.js"></script>
+        <!-- NProgress -->
+        <script src="/static/js/nprogress.js"></script>
+        <!-- Chart.js -->
+        <script src="/static/js/Chart.min.js"></script>
+        <!-- gauge.js -->
+        <script src="/static/js/gauge.min.js"></script>
+        <!-- bootstrap-progressbar -->
+        <script src="/static/js/bootstrap-progressbar.min.js"></script>
+        <!-- iCheck -->
+        <script src="/static/js/icheck.min.js"></script>
+        <!-- Skycons -->
+        <script src="/static/js/skycons.js"></script>
+        <!-- Flot -->
+        <script src="/static/js/jquery.flot.js"></script>
+        <script src="/static/js/jquery.flot.pie.js"></script>
+        <script src="/static/js/jquery.flot.time.js"></script>
+        <script src="/static/js/jquery.flot.stack.js"></script>
+        <script src="/static/js/jquery.flot.resize.js"></script>
+        <!-- Flot plugins -->
+        <script src="/static/js/jquery.flot.orderBars.js"></script>
+        <script src="/static/js/jquery.flot.spline.min.js"></script>
+        <script src="/static/js/curvedLines.js"></script>
+        <!-- DateJS -->
+        <script src="/static/js/date.js"></script>
+        <!-- JQVMap -->
+        <script src="/static/js/jquery.vmap.js"></script>
+        <script src="/static/js/jquery.vmap.world.js"></script>
+        <script src="/static/js/jquery.vmap.sampledata.js"></script>
+        <!-- bootstrap-daterangepicker -->
+        <script src="/static/js/moment.min.js"></script>
+        <script src="/static/js/daterangepicker.js"></script>
+
+        <!-- Custom Theme Scripts -->
+        <script src="/static/js/custom.min.js"></script>
+        <!-- Google Analytics -->
+        <script type="text/javascript"></script>
+        {% block bottom-js %}
+        {% endblock %}
+    </body>
+</html>
+
+
+
+
